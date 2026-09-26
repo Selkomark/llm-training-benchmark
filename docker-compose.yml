@@ -1,0 +1,25 @@
+services:
+  train:
+    build: .
+    image: llm-training-benchmark:latest
+    container_name: llm-training-benchmark
+    # Run as the host user so data/, outputs/ and .cache/ stay owned by you.
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    # Secrets (HF_TOKEN) live in the git-ignored .env; see .env.example.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - MODEL_ID=${MODEL_ID:-Qwen/Qwen3-4B-Instruct-2507}
+    volumes:
+      - ./data:/app/data
+      - ./outputs:/app/outputs
+      - ./.cache/hf:/cache/hf
+    shm_size: 2gb
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
